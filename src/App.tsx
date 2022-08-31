@@ -1,5 +1,6 @@
 import { SearchOutlined } from '@ant-design/icons'
 import { Button, InputNumber, Select, Typography } from "antd"
+import { DefaultOptionType } from 'antd/lib/select'
 import { useReducer, useState } from "react"
 import './App.css'
 import Chart, { ChartData } from "./components/Chart"
@@ -111,12 +112,18 @@ function App() {
     )
   }
 
+  const filterFunction = (input: string, option: DefaultOptionType | undefined) => {
+    return (option!.children as unknown as string).toLowerCase().includes(input.toLowerCase())
+  }
+
   return (
     <div className='container'>
       <div className='fields'>
         <div className='flex column'>
           <Typography.Text strong>Tipo de veículo</Typography.Text>
           <Select
+            loading={isLoading}
+            disabled={isLoading}
             value={vehicle.vehicleType}
             onChange={handleChangeType}
           >
@@ -137,6 +144,8 @@ function App() {
             disabled={isLoading}
             value={vehicle.brandCode}
             onChange={handleChangeBrand}
+            showSearch
+            filterOption={filterFunction}
           >
             {brands.map(brand =>
               <Select.Option
@@ -155,6 +164,8 @@ function App() {
             disabled={isLoading}
             value={vehicle.modelCode}
             onChange={handleChangeModel}
+            showSearch
+            filterOption={filterFunction}
           >
             {models.map(model =>
               <Select.Option
@@ -187,6 +198,7 @@ function App() {
         <div className='flex column'>
           <Typography.Text strong>Ultimos X meses</Typography.Text>
           <InputNumber
+            disabled={isLoading}
             min={1}
             value={qttMonths}
             onChange={setQttMonths}

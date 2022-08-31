@@ -13,8 +13,6 @@ export interface ChartData {
 }
 
 export default function Chart({ name, data }: ChartProps) {
-  
-  const [ ctx, setCtx ] = useState<ChartItem>()
   const [ chart, setChart ] = useState<ChartJs>()
 
   const height = useMemo(() => {
@@ -41,7 +39,6 @@ export default function Chart({ name, data }: ChartProps) {
         datasets: []
       }
     })
-    setCtx(context)
     setChart(newChart)
   }, [name])
 
