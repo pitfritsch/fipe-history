@@ -58,6 +58,6 @@ export default function Chart({ name, data }: ChartProps) {
   }, [chart, data])
 
   return (
-    <canvas id={name} height={`${height}px`}></canvas>
+    <canvas id={name} height={`${height > 500 ? height : 500}px`}></canvas>
   )
 }
