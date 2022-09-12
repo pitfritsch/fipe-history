@@ -1,7 +1,7 @@
 import { SearchOutlined } from '@ant-design/icons'
-import { Button, InputNumber, Select, Typography } from "antd"
+import { Button, InputNumber, Select, Table, Typography } from "antd"
 import { DefaultOptionType } from 'antd/lib/select'
-import { useReducer, useState } from "react"
+import { useEffect, useReducer, useState } from "react"
 import './App.css'
 import Chart, { ChartData } from "./components/Chart"
 import Fipe, { IDefaultResponse, PossibleVehicleTypes, Vehicle } from "./service/Fipe"
@@ -15,6 +15,34 @@ const VehicleTypes: {
   { name: 'Caminhões', value: 'trucks' },
 ]
 
+export interface IVehicleTable {
+  vehicle: Vehicle
+  key: string
+  color: string
+  brand: string
+  model: string
+  year: string
+  data: ChartData[]
+}
+
+const tableColumns = [
+  {
+    title: `Marca`,
+    dataIndex: `brand`,
+    key: `brand`,
+  },
+  {
+    title: `Modelo`,
+    dataIndex: `model`,
+    key: `model`,
+  },
+  {
+    title: `Ano`,
+    dataIndex: `year`,
+    key: `year`,
+  },
+]
+
 function App() {
   const [, rerender] = useReducer(() => Date.now(), 0)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -23,9 +51,12 @@ function App() {
   const [models, setModels] = useState<IDefaultResponse[]>([])
   const [years, setYears] = useState<IDefaultResponse[]>([])
   const [vehicle, setVehicle] = useState<Vehicle>({})
+
   const [qttMonths, setQttMonths] = useState<number>(24)
 
   const [chartValues, setChartValues] = useState<ChartData[]>([])
+
+  const [vehicles, setVehicles] = useState<IVehicleTable[]>([])
 
   const handleChangeType = (newType: PossibleVehicleTypes) => {
     setIsLoading(true)
@@ -101,13 +132,50 @@ function App() {
     rerender()
   }
 
+  const addVehicle = (newVehicle: Vehicle) => {
+    const vehicleToAdd: IVehicleTable = {
+      vehicle: newVehicle,
+      key: `${newVehicle.brandCode}_${newVehicle.modelCode}_${newVehicle.yearCode}`,
+      color: Math.floor(Math.random()*16777215).toString(16),
+      brand: brands.find(b => b.code === newVehicle.brandCode)?.name || '',
+      model: models.find(m => m.code === newVehicle.modelCode)?.name || '',
+      year: years.find(y => y.code === newVehicle.yearCode)?.name || '',
+      data: []
+    }
+    setVehicles(prevVehicles => [ ...prevVehicles, vehicleToAdd])
+  }
+
+  const updateVehicleChart = (vehicle: Vehicle, value: number, month: string) => {
+    setVehicles(oldState => {
+      const newState = [ ...oldState ]
+      console.log({
+        newState, oldState, vehicle, value, month
+      })
+      const finded = newState.find(v => 
+        v.vehicle.brandCode === vehicle.brandCode && 
+        v.vehicle.modelCode === vehicle.modelCode && 
+        v.vehicle.yearCode === vehicle.yearCode
+      )
+      if (!finded) return oldState
+      finded.data = [ 
+        ...finded.data,
+        {
+          value,
+          description: month
+        }
+      ]
+      return newState
+    })
+  }
+
   const search = () => {
     setIsLoading(true)
     setChartValues([])
+    addVehicle(vehicle)
     Fipe.getPriceHistory(
       vehicle,
       qttMonths,
-      addValueToChart,
+      (v, m) => updateVehicleChart(vehicle, v, m),
       () => setIsLoading(false)
     )
   }
@@ -115,6 +183,10 @@ function App() {
   const filterFunction = (input: string, option: DefaultOptionType | undefined) => {
     return (option!.children as unknown as string).toLowerCase().includes(input.toLowerCase())
   }
+
+  useEffect(() => {
+    console.log(vehicles)
+  }, [vehicles])
 
   return (
     <div className='container'>
@@ -211,11 +283,15 @@ function App() {
           onClick={search}
           loading={isLoading}
         >
-          Search
+          Adicionar veículo
         </Button>
       </div>
-      
-      <Chart name="oi" data={chartValues}/>
+      <Table columns={tableColumns} dataSource={vehicles} />
+      <Chart
+        name="oi"
+        data={chartValues}
+        vehicles={vehicles}
+      />
     </div>
   )
 }
