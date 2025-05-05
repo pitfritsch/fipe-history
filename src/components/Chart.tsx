@@ -54,12 +54,9 @@ export default function Chart({ name, vehicles }: ChartProps) {
         data: v.data.map((d) => d.value).reverse(),
       })),
     };
-    console.log(vehicles, newData);
     chart.data = newData;
     chart.update();
   }, [chart, vehicles]);
 
-  return (
-    <canvas id={name} height={`${height > 500 ? height : 500}px`}></canvas>
-  );
+  return <canvas id={name} height={`${height > 500 ? height : 500}px`} />;
 }

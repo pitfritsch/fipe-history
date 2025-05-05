@@ -1,4 +1,4 @@
-import { SearchOutlined } from "@ant-design/icons";
+import { DeleteFilled, SearchOutlined } from "@ant-design/icons";
 import { Button, InputNumber, Select, Table, Typography } from "antd";
 import { DefaultOptionType } from "antd/lib/select";
 import { useReducer, useState } from "react";
@@ -9,6 +9,7 @@ import Fipe, {
   PossibleVehicleTypes,
   Vehicle,
 } from "./service/Fipe";
+import { ColumnsType } from "antd/lib/table";
 
 const VehicleTypes: {
   name: string;
@@ -29,24 +30,6 @@ export interface IVehicleTable {
   data: ChartData[];
 }
 
-const tableColumns = [
-  {
-    title: `Marca`,
-    dataIndex: `brand`,
-    key: `brand`,
-  },
-  {
-    title: `Modelo`,
-    dataIndex: `model`,
-    key: `model`,
-  },
-  {
-    title: `Ano`,
-    dataIndex: `year`,
-    key: `year`,
-  },
-];
-
 function App() {
   const [, rerender] = useReducer(() => Date.now(), 0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -59,6 +42,43 @@ function App() {
   const [qttMonths, setQttMonths] = useState<number>(24);
 
   const [vehicles, setVehicles] = useState<IVehicleTable[]>([]);
+
+  const tableColumns: ColumnsType<IVehicleTable> = [
+    {
+      title: `Marca`,
+      dataIndex: `brand`,
+      key: `brand`,
+    },
+    {
+      title: `Modelo`,
+      dataIndex: `model`,
+      key: `model`,
+    },
+    {
+      title: `Ano`,
+      dataIndex: `year`,
+      key: `year`,
+    },
+    {
+      key: "action",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          danger
+          shape="circle"
+          icon={<DeleteFilled />}
+          onClick={() => handleVehicleRemoval(record)}
+        />
+      ),
+    },
+  ];
+
+  const handleVehicleRemoval = (vehicle: IVehicleTable) => {
+    const newVehicles = [...vehicles];
+    const position = newVehicles.indexOf(vehicle);
+    newVehicles.splice(position, 1);
+    setVehicles(newVehicles);
+  };
 
   const handleChangeType = (newType: PossibleVehicleTypes) => {
     setIsLoading(true);
